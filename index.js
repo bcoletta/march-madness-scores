@@ -20,6 +20,7 @@ const END_YEAR = args[1] ? parseInt(args[1]) : START_YEAR;
 const YEAR_STR = START_YEAR === END_YEAR ? `${START_YEAR}` : `${START_YEAR} - ${END_YEAR}`;
 
 let ALL_SCORES = [];
+let OUTPUT = {};
 
 const aggregate = (games) => {
   let returnArr = [];
@@ -37,13 +38,24 @@ const aggregate = (games) => {
   return returnArr.sort((a,b) => b[2] - a[2]);
 }
 
-getTourneyGamesByYear(START_YEAR).then(res => {
-  const games = res.map(g => new Game(g).square);
+let currentYear = START_YEAR;
+let ALL_GAMES = [];
 
-  let yearScores = aggregate(games);
+while (currentYear <= END_YEAR) {
+  const apiGames = await getTourneyGamesByYear(currentYear);
+  console.log(`Found ${apiGames.length} tourney games for ${currentYear}`);
+  const games = apiGames.map(g => new Game(g).square);
+  const aggregatedGames = aggregate(games);
 
-  // TODO - Print results
-  console.log(yearScores);
+  ALL_GAMES = [ ...ALL_GAMES, ...games ];
 
+  OUTPUT[currentYear] = aggregatedGames;
 
-});
+  currentYear++;
+}
+
+ALL_SCORES = aggregate(ALL_GAMES);
+
+OUTPUT.all = ALL_SCORES;
+
+console.log(OUTPUT);
